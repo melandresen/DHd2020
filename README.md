@@ -7,7 +7,7 @@ Syntaktische Profile für Interpretationen jenseits der Textoberfläche.
 DHd2020, Paderborn.
 
 Das Skript ``collocations_surface.py`` berechnet die oberflächenbasierten Kollokationen, 
-das Skript ``collocations_symtax`` die syntaxbasierten.
+das Skript ``collocations_syntax`` die syntaxbasierten.
 Das Skript ``llr.py`` ist nicht für den Beitrag entstanden, sondern stammt von Ted Dunning, siehe https://github.com/tdunning/python-llr.
 
 Im Ordner ``demo-corpus`` werden Textdateien im conll-Format erwartet.
