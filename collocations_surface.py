@@ -29,9 +29,9 @@ def load_corpus_token(directory):
     return corpus
 
 
-def load_corpus_lemma(directory, files):
+def load_corpus_lemma(directory):
     result = []
-    corpus = Corpus(directory, files)
+    corpus = Corpus(directory)
     for text in corpus.files:
         for sentence in text.sentences:
             for word in sentence.words:
