@@ -6,7 +6,7 @@
 # funded by Landesforschungsförderung Hamburg
 
 ########################################################################################
-# classes for representing a corpus based on conll files
+# classes for representing a corpus based on CoNLL files
 ########################################################################################
 
 import sys
@@ -15,25 +15,21 @@ import re
 
 
 class Word:
-    """word with linguistic features
+    """
+    Word with linguistic features
     input: feature list as conll
     output: Word object with linguistic features
     """
 
-    def __init__(self, feature_list):
+    def __init__(self, word):
 
-        if len(feature_list) == 10:
-            self.id = int(feature_list[2])
-            self.token = feature_list[3]
-            self.lemma = feature_list[4]
-            self.pos = feature_list[5]
-            self.morph = feature_list[6]
-            self.head = int(feature_list[7])
-            self.deprel = feature_list[8]
-            self.coref = feature_list[9]
+        feature_list = word.split('\t')  # transforms words to lists of features
 
-        elif len(feature_list) == 14:
-            self.id = int(feature_list[0])
+        if len(feature_list) == 14:       # CoNLL 2009
+            try:
+                self.id = int(feature_list[0])
+            except:
+                raise ValueError('Sorry, unknown CoNLL format!')
             self.token = feature_list[1]
             self.lemma = feature_list[3]
             self.pos = feature_list[5]
@@ -42,7 +38,7 @@ class Word:
             self.deprel = feature_list[11]
             self.coref = ''
 
-        elif len(feature_list) == 8:
+        elif len(feature_list) == 10:       # CoNLL-X (2006)
             self.id = int(feature_list[0])
             self.token = feature_list[1]
             self.lemma = feature_list[2]
@@ -53,17 +49,17 @@ class Word:
             self.coref = ''
 
         else:
-            print(len(feature_list))
-            sys.exit('Sorry, unknown Conll format!')
+            raise ValueError('Sorry, unknown CoNLL format or empty file!')
 
     def __repr__(self):
         return 'Word({})'.format(self.token)
 
 
 class Sentence:
-    """ list of words
+    """
+    List of words
     input: conll-String
-    ouput: Sentence-Object (nested list)
+    ouput: list of Word objects
     """
 
     def __init__(self, conll_string):
@@ -71,51 +67,47 @@ class Sentence:
         self.words = []
         word_list = conll_string.split('\n')  # transforms sentences to lists of words
         for word in word_list:
-            word = re.sub(' {2}', '\t', word)
-            word = word.split('\t')  # transforms words to lists of features
-            self.words.append(Word(word))
+            if not re.match('#', word):
+                word = re.sub(' {2}', '\t', word)
+                try:
+                    self.words.append(Word(word))
+                except ValueError as e:
+                    raise ValueError(e)
 
         self.token_string = ' '.join([word.token for word in self.words])  # adds token string for readability
 
-    def get_subjects(self):
-
-        for word in self.words:
-            if word.deprel == 'SUBJ':
-                return word.token
-
     def __repr__(self):
-        return 'Sentence({})'.format(' '.join([word.token for word in self.words]))
+        return 'Sentence({})'.format(self.token_string)
 
 
 class Text:
-    """ list of sentences
+    """
+    List of sentences
     input: path to conll-file
-    output: list of Sentences
+    output: list of Sentence objects
     """
 
     def __init__(self, file):
         self.path = file
         self.sentences = []
-        self.is_valid = True  # variable for marking invalid (empty) texts
         with open(file, 'r', encoding='utf8') as input_data:
             text = input_data.read()
-        if not text:  # if the file is empty
-            print('WARNING: Empty file: {}'.format(file))
-            self.is_valid = False  # mark the text as invalid for later exclusion
-        else:
-            text = text.strip()
-            text = re.sub('#begin document.*?\n', '', text)
-            text = re.sub('#end document.*', '', text)
-            text = text.strip()
-            conll_strings = text.split('\n\n')  # transforms text to list of sentences
-            for conll_string in conll_strings:
-                self.sentences.append(Sentence(conll_string))
+        text = text.strip()
+        conll_strings = text.split('\n\n')  # transforms text to list of sentences
+        for conll_string in conll_strings:
+            try:
+                sentence = Sentence(conll_string)
+                if len(sentence.words) > 0:
+                    self.sentences.append(sentence)
+            except ValueError as e:
+                sys.exit('Text {}: {}'.format(self.path, e))
 
 
 class Corpus:
-    """list of Texts
+    """
+    List of texts
     input: path to directory
-    output: list of Texts
+    output: list of Text objects
     """
 
     def __init__(self, path, files=None):
@@ -127,20 +119,10 @@ class Corpus:
             files = os.listdir(path)
             files = [f for f in files if re.search('(conll|txt)', f)]  # reduction to txt and conll files
             files = [f for f in files if not re.match('\.', f)]  # exclusion of mac system files
+        else:
+            self.files = files
         for file in files:
             self.files.append(Text(path + file))
             print('File {} imported.'.format(file))
-        self.files = [obj for obj in self.files if
-                      obj.is_valid]  # excludes texts that were declared invalid for some reason
-        print('Corpus import finished.')
 
-    def search(self, search_term):
-        """returns a list of all sentences with a given search term (currently token only)
-        """
-        results = []
-        for text in self.files:
-            for sentence in text.sentences:
-                lemmas = [word.lemma for word in sentence.words]
-                if search_term in lemmas:
-                    results.append(sentence)
-        return results
+        print('\nCorpus import finished.\n')
