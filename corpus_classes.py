@@ -114,14 +114,17 @@ class Corpus:
 
         print('Corpus is being compiled...\n')
 
-        self.files = []
+        self.filelist = []
         if not files:
-            files = os.listdir(path)
-            files = [f for f in files if re.search('(conll|txt)', f)]  # reduction to txt and conll files
-            files = [f for f in files if not re.match('\.', f)]  # exclusion of mac system files
+            self.filelist = os.listdir(path)
+            self.filelist = [f for f in files if re.search('(conll|txt)', f)]  # reduction to txt and conll files
+            self.filelist = [f for f in files if not re.match('\.', f)]  # exclusion of mac system files
         else:
-            self.files = files
-        for file in files:
+            self.filelist = files
+
+        self.files = []
+
+        for file in self.filelist:
             self.files.append(Text(path + file))
             print('File {} imported.'.format(file))
 
