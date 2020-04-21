@@ -10,7 +10,6 @@ Das Skript ``collocations_surface.py`` berechnet die oberflächenbasierten Kollo
 Der Output besteht aus Wort_1, Wort_2, dem LLR-Wert und der absoluten Frequenz der Kombination (tabgetrennt).
 Das Skript ``collocations_syntax`` berechnet die syntaxbasierten Kollokationen.
 Der Output besteht aus Wort_1 (Dependent), der syntaktischen Relation zwischen den Wörtern, Wort_2 (Kopf), dem LLR-Wert und der absoluten Frequenz der Kombination (tabgetrennt).
-Das Skript ``llr.py`` ist nicht für den Beitrag entstanden, sondern stammt von Ted Dunning, siehe https://github.com/tdunning/python-llr.
 
 Im Ordner ``demo-corpus`` werden Textdateien im Format CoNLL-X (2006) oder 2009 erwartet.
 Die im Beitrag verwendeten Daten können aus Gründen des Datenschutzes bzw. des Urheberrechts nicht veröffentlicht werden.
