@@ -117,8 +117,8 @@ class Corpus:
         self.filelist = []
         if not files:
             self.filelist = os.listdir(path)
-            self.filelist = [f for f in files if re.search('(conll|txt)', f)]  # reduction to txt and conll files
-            self.filelist = [f for f in files if not re.match('\.', f)]  # exclusion of mac system files
+            self.filelist = [f for f in self.filelist if re.search('(conll|txt)', f)]  # reduction to txt and conll files
+            self.filelist = [f for f in self.filelist if not re.match('\.', f)]  # exclusion of mac system files
         else:
             self.filelist = files
 
