@@ -11,9 +11,10 @@
 ########################################################################################
 
 import re
+import numpy as np
+from scipy.stats import chi2_contingency
 import pandas as pd
 from collections import Counter
-import llr  # by Ted Dunning, see https://github.com/tdunning/python-llr
 from corpus_classes import Corpus
 
 
@@ -61,16 +62,17 @@ def get_collocations(relations):
         print('Calculating scores for {}...'.format(relation_type))
         instances = [item for item in relations if item[1] == relation_type]
         bigram_counts = Counter(instances)
+        # The following line excludes collocations with frequency 1 from the calculation.
+        # Comment out if you want to include those.
+        bigram_counts = {k: v for (k,v) in bigram_counts.items() if v > 1}
         unigram_counts_pos1 = Counter([item[0] for item in instances])
         unigram_counts_pos2 = Counter([item[2] for item in instances])
 
         all_bigrams_count = sum(bigram_counts.values())
         for bigram in bigram_counts:
-            ratio = llr.llr_2x2(bigram_counts[bigram],
-                                unigram_counts_pos1[bigram[0]],
-                                unigram_counts_pos2[bigram[2]],
-                                all_bigrams_count)
-            results = results.append(pd.DataFrame([[bigram[0], bigram[1], bigram[2], ratio, bigram_counts[bigram]]], columns=['word_1', 'relation', 'word_2', 'llr', 'frequency']))
+            frequencies = np.array([[bigram_counts[bigram], unigram_counts_pos1[bigram[0]]], [unigram_counts_pos2[bigram[2]], all_bigrams_count]])
+            g, p, dof, expctd = chi2_contingency(frequencies, lambda_="log-likelihood")
+            results = results.append(pd.DataFrame([[bigram[0], bigram[1], bigram[2], g, bigram_counts[bigram]]], columns=['word_1', 'relation', 'word_2', 'llr', 'frequency']))
 
     results = results.iloc[(-results['llr'].abs()).argsort()]  # sort dataframe by absolute value of llr
     results = results.reset_index(drop=True)  # update index
